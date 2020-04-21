@@ -122,7 +122,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     }
                 }
             } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
                 // stop thread
             }
         });
