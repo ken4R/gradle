@@ -31,8 +31,7 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.BuildLogic
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.Other
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 
 class DefaultCachedClasspathTransformerTest extends Specification {
     @Rule
