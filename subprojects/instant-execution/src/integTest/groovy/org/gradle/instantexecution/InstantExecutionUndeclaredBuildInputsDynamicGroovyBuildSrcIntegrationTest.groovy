@@ -16,7 +16,7 @@
 
 package org.gradle.instantexecution
 
-import groovy.transform.CompileStatic
+
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -26,7 +26,6 @@ class InstantExecutionUndeclaredBuildInputsDynamicGroovyBuildSrcIntegrationTest 
         file("buildSrc/src/main/groovy/SneakyPlugin.groovy") << """
             import ${Project.name}
             import ${Plugin.name}
-            import ${CompileStatic.name}
 
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
