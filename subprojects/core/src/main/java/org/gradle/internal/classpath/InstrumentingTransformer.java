@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import groovy.lang.GroovyObject;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.Pair;
@@ -30,7 +29,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type SYSTEM_TYPE = Type.getType(System.class);
     private static final Type STRING_TYPE = Type.getType(String.class);
     private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
-    private static final Type GROOVY_TYPE = Type.getType(GroovyObject.class);
 
     private static final String RETURN_STRING_FROM_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.getType(CallSiteArray.class));
@@ -54,7 +52,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static class InstrumentingVisitor extends ClassVisitor {
         private String className;
-        private boolean groovyType;
         private boolean hasCallSites;
 
         public InstrumentingVisitor(ClassVisitor visitor) {
@@ -64,14 +61,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
-
-            for (String anInterface : interfaces) {
-                if (anInterface.equals(GROOVY_TYPE.getInternalName())) {
-                    this.groovyType = true;
-                    break;
-                }
-            }
-
             this.className = name;
         }
 
@@ -81,12 +70,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             if (name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasCallSites = true;
             }
-            return new InstrumentingMethodVisitor(className, groovyType, methodVisitor);
+            return new InstrumentingMethodVisitor(className, methodVisitor);
         }
 
         @Override
         public void visitEnd() {
-            if (groovyType && hasCallSites) {
+            if (hasCallSites) {
                 MethodVisitor methodVisitor = super.visitMethod(Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_PRIVATE, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, null, NO_EXCEPTIONS);
                 methodVisitor.visitCode();
                 methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, className, CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
@@ -102,12 +91,10 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
     private static class InstrumentingMethodVisitor extends MethodVisitor {
         private final String className;
-        private final boolean groovyType;
 
-        public InstrumentingMethodVisitor(String className, boolean groovyType, MethodVisitor methodVisitor) {
+        public InstrumentingMethodVisitor(String className, MethodVisitor methodVisitor) {
             super(Opcodes.ASM7, methodVisitor);
             this.className = className;
-            this.groovyType = groovyType;
         }
 
         @Override
@@ -118,7 +105,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING, false);
                 return;
             }
-            if (groovyType && opcode == Opcodes.INVOKESTATIC && owner.equals(className) && name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
+            if (opcode == Opcodes.INVOKESTATIC && owner.equals(className) && name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 super.visitMethodInsn(Opcodes.INVOKESTATIC, className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, false);
                 return;
             }

@@ -33,6 +33,6 @@ public class CopyingClasspathFileTransformer implements ClasspathFileTransformer
             // Just copy the jar
             GFileUtils.copyFile(source, cachedFile);
         }
-        return null;
+        return cachedFile;
     }
 }

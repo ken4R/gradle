@@ -32,6 +32,8 @@ class InstantExecutionUndeclaredBuildInputsDynamicGroovyDslIntegrationTest exten
                     }
                 }
             }
+
+            println("apply CI2 = " + System.getProperty("CI2"))
         """
     }
 }
