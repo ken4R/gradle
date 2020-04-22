@@ -32,6 +32,8 @@ public @interface ServiceScope {
 
     enum Value {
         Global,
+        UserHome,
+        BuildTree,
         Build
     }
 }
